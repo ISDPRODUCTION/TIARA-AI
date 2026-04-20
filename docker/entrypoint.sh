@@ -12,6 +12,12 @@ if [ ! -f /var/www/html/database/database.sqlite ]; then
 fi
 
 # Run migrations
+chmod -R 775 storage bootstrap/cache
+chown -R www-data:www-data /var/www/html
+
+# Ensure PHP-FPM listens on 127.0.0.1:9000 (often defaults to socket in some setups)
+find /usr/local/etc/php-fpm.d -name "*.conf" -exec sed -i 's|listen = .*|listen = 127.0.0.1:9000|g' {} +
+
 php artisan migrate --force
 
 # Optimize Laravel for production
