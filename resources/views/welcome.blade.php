@@ -43,7 +43,29 @@
                 </div>
             </div>
             <div class="sidebar-footer">
-                <div class="version-badge">NEXUS v1.5.0</div>
+                <div class="user-profile">
+                    <div class="user-avatar-small">
+                        @if(auth()->user()->avatar)
+                            <img src="{{ auth()->user()->avatar }}" alt="{{ auth()->user()->name }}">
+                        @else
+                            <div class="avatar-placeholder">{{ substr(auth()->user()->name, 0, 1) }}</div>
+                        @endif
+                    </div>
+                    <div class="user-info">
+                        <div class="user-name-wrapper">
+                            <span class="user-name">{{ auth()->user()->name }}</span>
+                            <span class="user-status-online"></span>
+                        </div>
+                        <div class="user-email">{{ auth()->user()->email }}</div>
+                    </div>
+                    <form action="{{ route('logout') }}" method="POST" class="logout-form">
+                        @csrf
+                        <button type="submit" class="logout-btn-new" title="Keluar">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                        </button>
+                    </form>
+                </div>
+                <div class="version-badge">TIARA v1.5.0</div>
             </div>
         </aside>
 
@@ -58,9 +80,13 @@
                     <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
                 </button>
                 <div class="header-avatar">
-                    <svg viewBox="0 0 24 24">
-                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
-                    </svg>
+                    @if(auth()->user()->avatar)
+                        <img src="{{ auth()->user()->avatar }}" alt="{{ auth()->user()->name }}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">
+                    @else
+                        <svg viewBox="0 0 24 24">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
+                        </svg>
+                    @endif
                 </div>
                 <div class="header-info">
                     <h1 class="header-title">TIARA AI</h1>

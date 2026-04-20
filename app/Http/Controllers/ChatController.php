@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use App\Models\ChatSession;
+use App\Models\ChatMessage;
+use Illuminate\Support\Facades\Auth;
 
 class ChatController extends Controller
 {
@@ -20,9 +23,55 @@ class ChatController extends Controller
             default   => 'AI',
         };
 
+        // Optionally pass current user's sessions if needed for initial load,
+        // but we'll fetch via API for consistency.
         return view('welcome', [
             'aiProvider' => $providerLabel,
         ]);
+    }
+
+    /**
+     * Get all chat sessions for the authenticated user.
+     */
+    public function getSessions()
+    {
+        $sessions = Auth::user()->chatSessions()
+            ->withCount('messages')
+            ->get()
+            ->map(function ($session) {
+                return [
+                    'id' => $session->id,
+                    'title' => $session->title ?? 'Obrolan Baru',
+                    'updated_at' => $session->updated_at->diffForHumans(),
+                ];
+            });
+
+        return response()->json($sessions);
+    }
+
+    /**
+     * Get all messages for a specific session.
+     */
+    public function getMessages($id)
+    {
+        $session = Auth::user()->chatSessions()->findOrFail($id);
+        $messages = $session->messages->map(function ($msg) {
+            return [
+                'role' => $msg->role,
+                'parts' => [['text' => $msg->content]]
+            ];
+        });
+
+        return response()->json($messages);
+    }
+
+    /**
+     * Delete a chat session.
+     */
+    public function deleteSession($id)
+    {
+        Auth::user()->chatSessions()->findOrFail($id)->delete();
+        return response()->json(['success' => true]);
     }
 
     /**
@@ -33,6 +82,7 @@ class ChatController extends Controller
     {
         $validated = $request->validate([
             'message'              => 'required|string|max:4000',
+            'session_id'           => 'nullable|exists:chat_sessions,id',
             'history'              => 'nullable|array|max:40',
             'history.*.role'       => 'required_with:history|string|in:user,model',
             'history.*.parts'      => 'required_with:history|array|min:1',
@@ -55,7 +105,24 @@ class ChatController extends Controller
         }
 
         try {
-            // 4. Prepare System Prompt with Contextual Info (Isolated)
+            // 0. Ensure Session
+            $sessionId = $validated['session_id'] ?? null;
+            if (!$sessionId) {
+                $session = Auth::user()->chatSessions()->create([
+                    'title' => substr($input, 0, 30) . (strlen($input) > 30 ? '...' : '')
+                ]);
+                $sessionId = $session->id;
+            } else {
+                $session = Auth::user()->chatSessions()->findOrFail($sessionId);
+            }
+
+            // 1. Save User Message
+            $session->messages()->create([
+                'role' => 'user',
+                'content' => $input
+            ]);
+
+            // 2. Prepare System Prompt with Contextual Info (Isolated)
             $currentTime = now()->timezone('Asia/Jakarta')->format('l, d F Y H:i');
             $contextInfo = "[CONTEXTUAL INFO]\n- Current Time: {$currentTime}\n- User Mood: " . ($state['mood'] ?? 'normal') . "\n\n";
 
@@ -68,10 +135,24 @@ class ChatController extends Controller
 
             // 5. Send to Provider
             if ($provider === 'mistral') {
-                return $this->sendToMistral($validated, $mode, $systemPrompt);
+                $replyJson = $this->sendToMistral($validated, $mode, $systemPrompt);
             } else {
-                return $this->sendToGemini($validated, $mode, $systemPrompt);
+                $replyJson = $this->sendToGemini($validated, $mode, $systemPrompt);
             }
+
+            $replyData = $replyJson->getData(true);
+            
+            if (isset($replyData['reply'])) {
+                // 6. Save AI Reply
+                $session->messages()->create([
+                    'role' => 'model',
+                    'content' => $replyData['reply']
+                ]);
+                
+                $replyData['session_id'] = $sessionId;
+            }
+
+            return response()->json($replyData);
         } catch (\Exception $e) {
             Log::error("AI API error [{$provider}]", ['message' => $e->getMessage()]);
             return response()->json(['error' => 'Terjadi kesalahan pada sistem AI.'], 500);
