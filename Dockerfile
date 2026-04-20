@@ -17,6 +17,7 @@ RUN apk add --no-cache \
     libzip-dev \
     icu-dev \
     oniguruma-dev \
+    bash \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install gd bcmath zip pdo pdo_mysql intl opcache mbstring
 
@@ -36,7 +37,7 @@ COPY --from=assets-builder /app/public/build ./public/build
 COPY docker/nginx.conf /etc/nginx/http.d/default.conf
 
 # Set permissions
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
+RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
 # Install PHP dependencies
