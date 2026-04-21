@@ -45,7 +45,10 @@ fi
 if [ "$DB_CONNECTION" != "sqlite" ]; then
     echo ">>> Waiting for database connection ($DB_HOST)..."
     for i in {1..30}; do
-        php artisan db:monitor && break
+        if php -r "try { new PDO('mysql:host=' . getenv('DB_HOST') . ';port=' . getenv('DB_PORT') . ';dbname=' . getenv('DB_DATABASE'), getenv('DB_USERNAME'), getenv('DB_PASSWORD')); exit(0); } catch (Exception \$e) { exit(1); }"; then
+            echo ">>> Database connected!"
+            break
+        fi
         echo ">>> Database not ready, waiting..."
         sleep 2
     done
