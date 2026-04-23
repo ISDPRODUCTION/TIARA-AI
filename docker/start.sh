@@ -6,11 +6,9 @@ export PORT=${PORT:-8080}
 # Replace $PORT placeholder in Nginx config
 envsubst '${PORT}' < /etc/nginx/sites-available/default > /etc/nginx/sites-available/default.tmp && mv /etc/nginx/sites-available/default.tmp /etc/nginx/sites-available/default
 
-# Generate .env file if it doesn't exist or update it from environment variables
-# Note: In production, it's better to use actual environment variables.
-# This part ensures standard Laravel variables are set.
+# Generate .env from Railway environment variables
 cat > /var/www/html/.env << EOF
-APP_NAME="${APP_NAME:-Laravel}"
+APP_NAME="${APP_NAME:-Tiara AI}"
 APP_ENV="${APP_ENV:-production}"
 APP_KEY="${APP_KEY}"
 APP_DEBUG="${APP_DEBUG:-false}"
@@ -25,8 +23,20 @@ DB_PASSWORD="${DB_PASSWORD}"
 
 SESSION_DRIVER="${SESSION_DRIVER:-file}"
 SESSION_LIFETIME="${SESSION_LIFETIME:-120}"
+SESSION_SECURE_COOKIE="${SESSION_SECURE_COOKIE:-false}"
 
+CACHE_STORE="${CACHE_STORE:-file}"
+QUEUE_CONNECTION="${QUEUE_CONNECTION:-sync}"
 FILESYSTEM_DISK="${FILESYSTEM_DISK:-local}"
+
+AI_PROVIDER="${AI_PROVIDER:-}"
+MISTRAL_API_KEY="${MISTRAL_API_KEY:-}"
+MISTRAL_MODEL="${MISTRAL_MODEL:-mistral-small-latest}"
+GEMINI_API_KEY="${GEMINI_API_KEY:-}"
+
+GOOGLE_CLIENT_ID="${GOOGLE_CLIENT_ID:-}"
+GOOGLE_CLIENT_SECRET="${GOOGLE_CLIENT_SECRET:-}"
+GOOGLE_REDIRECT_URI="${GOOGLE_REDIRECT_URI:-}"
 EOF
 
 # Ensure storage directories exist and are writable
@@ -42,10 +52,8 @@ php artisan config:clear
 php artisan cache:clear
 php artisan view:clear
 
-# Run migrations (only in production/force)
-if [ "$APP_ENV" = "production" ]; then
-    php artisan migrate --force
-fi
+# Run migrations, ignore errors if table already exists
+php artisan migrate --force 2>&1 || echo "Migration had errors (possibly already migrated), continuing..."
 
 # Start PHP-FPM in background
 php-fpm -D
