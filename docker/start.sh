@@ -1,4 +1,10 @@
 #!/bin/sh
+# Set default port if not provided
+export PORT=${PORT:-8080}
+
+# Replace environment variables in Nginx config
+envsubst '${PORT}' < /etc/nginx/sites-available/default > /etc/nginx/sites-available/default.tmp && mv /etc/nginx/sites-available/default.tmp /etc/nginx/sites-available/default
+
 php-fpm &
 sleep 3
 

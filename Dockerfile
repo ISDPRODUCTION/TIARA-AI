@@ -23,9 +23,10 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction --ignore-pl
 RUN chown -R www-data:www-data storage bootstrap/cache \
     && chmod -R 775 storage bootstrap/cache
 
-COPY .docker/nginx.conf /etc/nginx/sites-available/default
-COPY .docker/start.sh /start.sh
+COPY docker/nginx.conf /etc/nginx/sites-available/default
+RUN ln -sf /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
+COPY docker/start.sh /start.sh
 RUN chmod +x /start.sh
 
-EXPOSE 80
+EXPOSE 8080
 CMD ["/start.sh"]
