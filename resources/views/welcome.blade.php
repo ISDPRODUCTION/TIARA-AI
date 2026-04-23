@@ -73,6 +73,7 @@
         .sidebar { 
             transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); 
             width: 280px;
+            max-width: 85vw;
         }
         @media (max-width: 1023px) {
             .sidebar { 
@@ -471,7 +472,10 @@
             switchSession(item.dataset.id);
         });
 
-        document.getElementById('new-chat-btn')?.addEventListener('click', createNewSession);
+        document.getElementById('new-chat-btn')?.addEventListener('click', () => {
+            if (window.innerWidth < 1024) closeSidebar();
+            createNewSession();
+        });
 
         // Modals
         const ov = document.getElementById('modal-overlay');
