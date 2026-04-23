@@ -76,7 +76,6 @@ class ChatController extends Controller
 
     /**
      * Send a message to AI and return the response.
-     * Supports both Mistral and Gemini as providers.
      */
     public function sendMessage(Request $request)
     {
@@ -95,14 +94,10 @@ class ChatController extends Controller
         // 1. Get/Update State
         $state = $this->getState();
         $this->decayMood($state);
+        $this->updateMood($state, $input);
 
         // 2. Detect Mode (AI-based)
         $mode = $this->detectModeAI($input, $provider);
-
-        // 3. Update Mood if SANTAI
-        if ($mode === 'SANTAI') {
-            $this->updateMood($state, $input);
-        }
 
         try {
             // 0. Ensure Session
@@ -122,15 +117,21 @@ class ChatController extends Controller
                 'content' => $input
             ]);
 
-            // 2. Prepare System Prompt with Contextual Info (Isolated)
+            // 2. Prepare System Prompt with Contextual Info
             $currentTime = now()->timezone('Asia/Jakarta')->format('l, d F Y H:i');
-            $contextInfo = "[CONTEXTUAL INFO]\n- Current Time: {$currentTime}\n- User Mood: " . ($state['mood'] ?? 'normal') . "\n\n";
+            $contextInfo = "[CONTEXTUAL INFO]\n- Current Time: {$currentTime}\n- Tiara Current Mood: " . ($state['tiara_mood'] ?? 'normal') . "\n\n";
 
             if ($mode === 'AKADEMIK') {
                 $academicType = $this->detectAcademicType($input);
                 $systemPrompt = $contextInfo . "ACADEMIC_TYPE: {$academicType}\n\n" . config('ai.system_prompt_akademik');
             } else {
                 $systemPrompt = $contextInfo . config('ai.system_prompt_santai');
+                // Add emotional instruction if mood isn't normal
+                if ($state['tiara_mood'] === 'merajuk') {
+                    $systemPrompt .= "\n[MOOD INSTRUCTION]: Kamu sedang merajuk/kesal karena digoda. Jawab dengan agak ketus, jual mahal, tapi tetap asik (tsundere style).";
+                } elseif ($state['tiara_mood'] === 'salting') {
+                    $systemPrompt .= "\n[MOOD INSTRUCTION]: Kamu sedang salting/malu-malu karena dipuji. Jawab dengan malu-malu tapi mencoba tetap terlihat cool.";
+                }
             }
 
             // 5. Send to Provider
@@ -143,12 +144,10 @@ class ChatController extends Controller
             $replyData = $replyJson->getData(true);
             
             if (isset($replyData['reply'])) {
-                // 6. Save AI Reply
                 $session->messages()->create([
                     'role' => 'model',
                     'content' => $replyData['reply']
                 ]);
-                
                 $replyData['session_id'] = $sessionId;
             }
 
@@ -315,7 +314,8 @@ class ChatController extends Controller
     private function getState(): array
     {
         return session()->get('tiara_state', [
-            'mood' => 'normal',
+            'user_mood' => 'normal',
+            'tiara_mood' => 'normal',
             'last_interaction' => time()
         ]);
     }
@@ -330,9 +330,10 @@ class ChatController extends Controller
         $now = time();
         $diff = $now - ($state['last_interaction'] ?? $now);
 
-        // Reset mood after 10 minutes (600 seconds)
-        if ($diff > 600) {
-            $state['mood'] = 'normal';
+        // Reset mood after 15 minutes
+        if ($diff > 900) {
+            $state['user_mood'] = 'normal';
+            $state['tiara_mood'] = 'normal';
         }
         $state['last_interaction'] = $now;
     }
@@ -340,25 +341,40 @@ class ChatController extends Controller
     private function updateMood(array &$state, string $input): void
     {
         $lower = strtolower($input);
-        // Simple logic: if user is rude/aggressive or very friendly
+        
+        // 1. Detect User Mood
         if (str_contains($lower, 'marah') || str_contains($lower, 'kesel')) {
-            $state['mood'] = 'sedikit sedih';
+            $state['user_mood'] = 'sedikit sedih';
         } elseif (str_contains($lower, 'keren') || str_contains($lower, 'makasih')) {
-            $state['mood'] = 'senang';
+            $state['user_mood'] = 'senang';
+        }
+
+        // 2. Detect Tiara Mood (Emotional Reactions)
+        // Flirting/Teasing detection
+        $flirtKeywords = ['cantik', 'manis', 'sayang', 'love', 'pacar', 'nikah', 'jadian', 'gebetan', 'cakep', 'ganteng', 'gemes'];
+        $teaseKeywords = ['ciye', 'cie', 'iseng', 'goda', 'godain', 'ledek', 'becanda'];
+
+        $isFlirting = false;
+        foreach($flirtKeywords as $word) { if(str_contains($lower, $word)) $isFlirting = true; }
+        
+        $isTeasing = false;
+        foreach($teaseKeywords as $word) { if(str_contains($lower, $word)) $isTeasing = true; }
+
+        if ($isFlirting) {
+            $state['tiara_mood'] = 'salting'; // Blushing
+        } elseif ($isTeasing) {
+            $state['tiara_mood'] = 'merajuk'; // Sulking
+        } else {
+            // Gradually return to normal if no triggers
+            if (rand(1, 10) > 7) $state['tiara_mood'] = 'normal';
         }
     }
 
     /**
-     * Human Flavor Post-processing
+     * Post-processing (Currently simple return)
      */
     private function addHumanFlavor(string $text, string $mode): string
     {
-        if ($mode !== 'SANTAI') return $text;
-
-        $fillers = ["hmm...", "bentar ya aku mikir...", "oke jadi gini,"];
-        if (rand(1, 100) <= 30) {
-            return $fillers[array_rand($fillers)] . " " . $text;
-        }
         return $text;
     }
 }
