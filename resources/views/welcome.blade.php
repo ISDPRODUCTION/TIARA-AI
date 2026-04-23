@@ -472,6 +472,9 @@
         document.getElementById('modal-cancel')?.addEventListener('click', closeMod);
         document.getElementById('modal-confirm')?.addEventListener('click', () => { closeMod(); createNewSession(); });
 
+        // Always start with a fresh state and welcome screen
+        console.log("TIARA_SYSTEM: Initializing fresh protocol v1.5.3");
+        createNewSession();
         loadSessions();
     });
     </script>
