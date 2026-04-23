@@ -13,6 +13,8 @@ RUN apt-get update && apt-get install -y \
     unzip \
     curl \
     && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip intl \
+    && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+    && apt-get install -y nodejs \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install Composer
@@ -26,6 +28,9 @@ COPY . .
 
 # Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader --no-interaction --ignore-platform-reqs
+
+# Install and build frontend assets
+RUN npm install && npm run build
 
 # Set permissions
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
