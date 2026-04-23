@@ -184,6 +184,7 @@
     </div>
 
     <script>
+    const AUTH_INITIAL = '{{ substr(auth()->user()->name, 0, 1) }}';
     // ============================================================
     // TIARA AI — Embedded App Logic
     // ============================================================
@@ -229,12 +230,14 @@
 
         const isUser = role === 'user';
         const div = document.createElement('div');
-        div.className = `flex gap-2 w-fit max-w-[85%] ${isUser ? 'self-end flex-row-reverse' : 'self-start'}`;
-        div.style.animation = 'slide-up .4s ease-out';
+        // Use inline styles only - avoid Tailwind dynamic class generation issues
+        div.style.cssText = `display:flex;gap:8px;max-width:85%;width:fit-content;animation:slide-up .4s ease-out;align-self:${isUser ? 'flex-end' : 'flex-start'};${isUser ? 'flex-direction:row-reverse' : ''}`;
 
         const avatarBg = isUser ? 'background:linear-gradient(135deg,#3b82f6,#8b5cf6)' : 'background:rgba(0,245,255,0.1);border:1px solid rgba(0,245,255,0.2)';
         const bubbleBg = isUser ? 'background:linear-gradient(135deg,#3b82f6,#8b5cf6);color:white;border-radius:18px 18px 4px 18px;' : 'background:rgba(15,15,45,0.6);border:1px solid rgba(0,245,255,0.12);border-radius:18px 18px 18px 4px;';
-        const avatarContent = isUser ? '<span style="color:white;font-weight:700;font-size:.8rem">' + (auth_initial || 'U') + '</span>' : '<svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:#00f5ff"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>';
+        const avatarContent = isUser
+            ? `<span style="color:white;font-weight:700;font-size:.8rem">${AUTH_INITIAL}</span>`
+            : '<svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:#00f5ff"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>';
         const time = new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
 
         div.innerHTML = `
@@ -307,7 +310,10 @@
         currentSessionId = null; conversationHistory = [];
         const container = document.getElementById('chat-container');
         const welcome = document.getElementById('welcome-screen');
-        container.querySelectorAll('div[style*="align-self"]').forEach(m => m.remove());
+        // Remove all chat message divs (they have align-self in inline style)
+        Array.from(container.children).forEach(el => {
+            if (el.id !== 'welcome-screen') el.remove();
+        });
         if (welcome) welcome.style.display = 'flex';
         const input = document.getElementById('chat-input');
         if (input) { input.value = ''; autoResize(input); }
