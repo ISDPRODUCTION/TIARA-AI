@@ -87,11 +87,11 @@
             <div class="p-6 border-b neon-border">
                 <button id="new-chat-btn" class="w-full py-3 px-4 glass border neon-border rounded-xl text-sm font-medium flex items-center justify-center gap-2 hover:border-cyan-neon/50 hover:bg-cyan-neon/5 transition-all duration-300 neon-glow-btn">
                     <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                    New Session
+                    Obrolan Baru
                 </button>
             </div>
             <div class="flex-1 overflow-y-auto p-4 chat-scroll">
-                <p class="text-[0.65rem] text-gray-500 uppercase tracking-widest mb-4 px-2">Recent Archives</p>
+                <p class="text-[0.65rem] text-gray-500 uppercase tracking-widest mb-4 px-2">RIWAYAT</p>
                 <div id="history-list" class="flex flex-col gap-1.5">
                     <!-- Loaded via JS -->
                 </div>
@@ -147,16 +147,24 @@
                         <svg viewBox="0 0 24 24" class="w-12 h-12 relative z-10" style="fill:#00f5ff; filter: drop-shadow(0 0 10px #00f5ff)"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
                     </div>
                     <h2 class="font-orbitron text-4xl font-black tracking-[6px] uppercase neon-text mb-3">TIARA AI</h2>
-                    <p class="text-gray-400 text-sm max-w-sm leading-relaxed mb-12 px-4">Your intelligent academic companion. Optimized for deep learning and student productivity.</p>
+                    <p class="text-gray-400 text-sm max-w-sm leading-relaxed mb-12 px-4">Halo! Aku Tiara, teman mahasiswa kamu yang siap bantu ngerjain tugas, diskusi materi kuliah, atau sekadar nemenin kamu belajar.</p>
                     
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-lg px-4">
-                        <button class="suggestion-card glass border neon-border rounded-2xl p-5 text-left hover:border-cyan-neon/40 hover:bg-cyan-neon/5 transition-all group" data-prompt="Jelaskan tentang Quantum Computing secara sederhana">
-                            <span class="text-2xl mb-3 block group-hover:scale-110 transition-transform">💡</span>
-                            <p class="text-xs text-gray-400 leading-relaxed font-medium">Explain Quantum Computing in simple terms</p>
+                        <button class="suggestion-card glass border neon-border rounded-2xl p-5 text-left hover:border-cyan-neon/40 hover:bg-cyan-neon/5 transition-all group" data-prompt="Jelaskan tentang AI dalam bahasa sederhana">
+                            <span class="text-2xl mb-3 block group-hover:scale-110 transition-transform">🧠</span>
+                            <p class="text-xs text-gray-400 leading-relaxed font-medium">Jelaskan tentang AI dalam bahasa sederhana</p>
                         </button>
-                        <button class="suggestion-card glass border neon-border rounded-2xl p-5 text-left hover:border-cyan-neon/40 hover:bg-cyan-neon/5 transition-all group" data-prompt="Buatkan rencana belajar untuk menguasai Python dalam 30 hari">
-                            <span class="text-2xl mb-3 block group-hover:scale-110 transition-transform">🐍</span>
-                            <p class="text-xs text-gray-400 leading-relaxed font-medium">30-day Python learning roadmap</p>
+                        <button class="suggestion-card glass border neon-border rounded-2xl p-5 text-left hover:border-cyan-neon/40 hover:bg-cyan-neon/5 transition-all group" data-prompt="Contoh kode JavaScript untuk animasi">
+                            <span class="text-2xl mb-3 block group-hover:scale-110 transition-transform">💻</span>
+                            <p class="text-xs text-gray-400 leading-relaxed font-medium">Contoh kode JavaScript untuk animasi</p>
+                        </button>
+                        <button class="suggestion-card glass border neon-border rounded-2xl p-5 text-left hover:border-cyan-neon/40 hover:bg-cyan-neon/5 transition-all group" data-prompt="Tren teknologi terbaru">
+                            <span class="text-2xl mb-3 block group-hover:scale-110 transition-transform">🚀</span>
+                            <p class="text-xs text-gray-400 leading-relaxed font-medium">Tren teknologi terbaru</p>
+                        </button>
+                        <button class="suggestion-card glass border neon-border rounded-2xl p-5 text-left hover:border-cyan-neon/40 hover:bg-cyan-neon/5 transition-all group" data-prompt="Tulis puisi tentang masa depan">
+                            <span class="text-2xl mb-3 block group-hover:scale-110 transition-transform">✨</span>
+                            <p class="text-xs text-gray-400 leading-relaxed font-medium">Tulis puisi tentang masa depan</p>
                         </button>
                     </div>
                 </div>
@@ -167,13 +175,13 @@
                 <div class="max-w-3xl mx-auto relative group">
                     <div class="absolute -inset-1 bg-gradient-to-r from-cyan-neon/20 to-violet-neon/20 rounded-2xl blur opacity-0 group-hover:opacity-100 transition duration-500"></div>
                     <div class="relative glass border neon-border rounded-2xl p-2 flex items-end gap-3 shadow-2xl">
-                        <textarea id="chat-input" rows="1" placeholder="Enter your query..." class="flex-1 bg-transparent text-sm resize-none outline-none placeholder-gray-600 px-4 py-3 max-h-32 leading-relaxed chat-scroll" aria-label="Query input"></textarea>
+                        <textarea id="chat-input" rows="1" placeholder="Masukkan pesan..." class="flex-1 bg-transparent text-sm resize-none outline-none placeholder-gray-600 px-4 py-3 max-h-32 leading-relaxed chat-scroll" aria-label="Query input"></textarea>
                         <button id="send-btn" disabled class="w-11 h-11 rounded-xl bg-gradient-to-br from-cyan-neon to-violet-neon flex items-center justify-center shrink-0 mb-1 disabled:opacity-20 disabled:cursor-not-allowed hover:scale-105 transition-all shadow-lg shadow-cyan-neon/20">
                             <svg viewBox="0 0 24 24" class="w-5 h-5 fill-white"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
                         </button>
                     </div>
                     <p class="text-center text-[0.65rem] text-gray-600 mt-3 font-medium tracking-wider uppercase">
-                        Press <span class="text-gray-400">Enter</span> to transmit // <span class="text-gray-400">Shift+Enter</span> for multiline
+                        Tekan <span class="text-gray-400">Enter</span> untuk mengirim // <span class="text-gray-400">Shift+Enter</span> untuk baris baru
                     </p>
                 </div>
             </footer>
@@ -186,11 +194,11 @@
             <div class="w-16 h-16 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center mx-auto mb-6 text-red-500">
                 <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
             </div>
-            <h3 class="text-lg font-bold mb-2">Initialize Purge?</h3>
-            <p class="text-sm text-gray-400 mb-8 leading-relaxed">This action will permanently delete all session archives. Confirm protocol execution.</p>
+            <h3 class="text-lg font-bold mb-2">Hapus Riwayat?</h3>
+            <p class="text-sm text-gray-400 mb-8 leading-relaxed">Tindakan ini akan menghapus seluruh percakapan secara permanen.</p>
             <div class="flex gap-3">
-                <button id="modal-cancel" class="flex-1 py-3 glass border neon-border rounded-xl text-sm font-semibold hover:bg-white/5 transition-all">ABORT</button>
-                <button id="modal-confirm" class="flex-1 py-3 bg-red-500/80 hover:bg-red-500 rounded-xl text-sm font-bold text-white transition-all">EXECUTE</button>
+                <button id="modal-cancel" class="flex-1 py-3 glass border neon-border rounded-xl text-sm font-semibold hover:bg-white/5 transition-all">BATAL</button>
+                <button id="modal-confirm" class="flex-1 py-3 bg-red-500/80 hover:bg-red-500 rounded-xl text-sm font-bold text-white transition-all">HAPUS</button>
             </div>
         </div>
     </div>
@@ -277,7 +285,7 @@
             <div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-1" style="${avatarStyle}">${avatarIcon}</div>
             <div class="flex flex-col gap-1.5">
                 <div class="message-bubble px-5 py-3.5 text-sm leading-relaxed glass" style="${bubbleStyle}">
-                    ${animate ? '<span class="opacity-50">Transmitting...</span>' : formatMessage(text)}
+                    ${animate ? '<span class="opacity-50">Mengirim...</span>' : formatMessage(text)}
                 </div>
                 <span class="text-[0.6rem] text-gray-600 px-2 uppercase tracking-tighter ${isUser ? 'text-right' : ''}">${new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
             </div>`;
@@ -306,7 +314,7 @@
     const renderSidebar = () => {
         const list = document.getElementById('history-list');
         if (!list) return;
-        if (!sessions.length) { list.innerHTML = '<div class="py-12 text-center"><p class="text-[0.65rem] text-gray-600 uppercase tracking-widest">No Active Archives</p></div>'; return; }
+        if (!sessions.length) { list.innerHTML = '<div class="py-12 text-center"><p class="text-[0.65rem] text-gray-600 uppercase tracking-widest">Belum ada riwayat</p></div>'; return; }
         
         list.innerHTML = sessions.map(s => `
             <div class="group history-item p-3.5 rounded-xl border border-transparent hover:border-cyan-neon/20 hover:bg-cyan-neon/5 cursor-pointer flex items-center justify-between gap-3 transition-all ${String(s.id) === String(currentSessionId) ? 'bg-cyan-neon/5 border-cyan-neon/30 text-cyan-neon' : 'text-gray-400'}" data-id="${s.id}">
@@ -440,7 +448,7 @@
             if (!item) return;
             const dBtn = e.target.closest('.delete-session-btn');
             if (dBtn) {
-                if (confirm('De-authorize this session archive?')) {
+                if (confirm('Hapus arsip sesi ini?')) {
                     const res = await apiCall(`/api/sessions/${dBtn.dataset.id}`, { method:'DELETE', headers:{'X-CSRF-TOKEN':csrfToken} });
                     if (res) { await loadSessions(); if (String(currentSessionId) === String(dBtn.dataset.id)) createNewSession(); }
                 }
@@ -473,7 +481,6 @@
         document.getElementById('modal-confirm')?.addEventListener('click', () => { closeMod(); createNewSession(); });
 
         // Always start with a fresh state and welcome screen
-        console.log("TIARA_SYSTEM: Initializing fresh protocol v1.5.3");
         createNewSession();
         loadSessions();
     });
