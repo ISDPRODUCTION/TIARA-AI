@@ -47,10 +47,17 @@ mkdir -p /var/www/html/storage/logs
 chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
-# Run Laravel optimizations
-php artisan config:clear
-php artisan cache:clear
+# 4. Handle APP_KEY (Crucial for session persistence)
+if [ -z "$APP_KEY" ]; then
+    echo "No APP_KEY found, generating one..."
+    php artisan key:generate --force
+else
+    echo "Using existing APP_KEY from environment."
+fi
+
+# 5. Optimization & Migrations
 php artisan view:clear
+php artisan config:clear
 
 # Run migrations, ignore errors if table already exists
 php artisan migrate --force 2>&1 || echo "Migration had errors (possibly already migrated), continuing..."
