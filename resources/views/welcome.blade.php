@@ -183,10 +183,195 @@
         </div>
     </div>
 
-    <script src="{{ asset('js/app.js') }}" defer></script>
     <script>
-    // Sidebar toggle fix for new layout
+    // ============================================================
+    // TIARA AI — Embedded App Logic
+    // ============================================================
+    let conversationHistory = [];
+    let currentSessionId = null;
+    let sessions = [];
+    let isProcessing = false;
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+
+    async function apiCall(url, options = {}) {
+        try {
+            const response = await fetch(url, options);
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            return await response.json();
+        } catch (e) { console.error('API Error:', e); return null; }
+    }
+
+    function scrollToBottom() {
+        const c = document.getElementById('chat-container');
+        if (c) c.scrollTo({ top: c.scrollHeight, behavior: 'smooth' });
+    }
+
+    function autoResize(el) {
+        if (!el) return;
+        el.style.height = 'auto';
+        el.style.height = el.scrollHeight + 'px';
+    }
+
+    function formatMessage(text) {
+        if (!text) return '';
+        return text
+            .replace(/```([\s\S]*?)```/g, '<pre class="code-block">$1</pre>')
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/`(.*?)`/g, '<code>$1</code>')
+            .replace(/\n/g, '<br>');
+    }
+
+    function renderMessage(role, text, animate = false) {
+        const container = document.getElementById('chat-container');
+        const welcome = document.getElementById('welcome-screen');
+        if (welcome) welcome.style.display = 'none';
+        if (!container) return;
+
+        const isUser = role === 'user';
+        const div = document.createElement('div');
+        div.className = `flex gap-2 w-fit max-w-[85%] ${isUser ? 'self-end flex-row-reverse' : 'self-start'}`;
+        div.style.animation = 'slide-up .4s ease-out';
+
+        const avatarBg = isUser ? 'background:linear-gradient(135deg,#3b82f6,#8b5cf6)' : 'background:rgba(0,245,255,0.1);border:1px solid rgba(0,245,255,0.2)';
+        const bubbleBg = isUser ? 'background:linear-gradient(135deg,#3b82f6,#8b5cf6);color:white;border-radius:18px 18px 4px 18px;' : 'background:rgba(15,15,45,0.6);border:1px solid rgba(0,245,255,0.12);border-radius:18px 18px 18px 4px;';
+        const avatarContent = isUser ? '<span style="color:white;font-weight:700;font-size:.8rem">' + (auth_initial || 'U') + '</span>' : '<svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:#00f5ff"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>';
+        const time = new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+
+        div.innerHTML = `
+            <div style="width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:4px;${avatarBg}">${avatarContent}</div>
+            <div style="display:flex;flex-direction:column;gap:4px">
+                <div class="message-bubble" style="padding:10px 14px;font-size:.88rem;line-height:1.65;word-break:break-word;backdrop-filter:blur(10px);${bubbleBg}">
+                    ${animate ? '<span>...</span>' : formatMessage(text)}
+                </div>
+                <div style="font-size:.65rem;color:#6b7280;padding:0 4px;${isUser ? 'text-align:right' : ''}">${time}</div>
+            </div>`;
+
+        container.appendChild(div);
+        scrollToBottom();
+
+        if (animate) {
+            const bubble = div.querySelector('.message-bubble');
+            let i = 0;
+            bubble.innerHTML = '';
+            const iv = setInterval(() => {
+                if (i < text.length) {
+                    bubble.innerHTML = formatMessage(text.substring(0, i+1)) + '<span class="cursor-blink" style="display:inline-block;width:2px;height:1em;background:#00f5ff;margin-left:2px;vertical-align:middle"></span>';
+                    i++;
+                    container.scrollTop = container.scrollHeight;
+                } else {
+                    bubble.innerHTML = formatMessage(text);
+                    clearInterval(iv);
+                }
+            }, 8);
+        }
+    }
+
+    function renderSidebar() {
+        const list = document.getElementById('history-list');
+        if (!list) return;
+        if (!sessions.length) { list.innerHTML = '<p style="text-align:center;color:#4b5563;font-size:.75rem;margin-top:24px">Belum ada riwayat</p>'; return; }
+        list.innerHTML = sessions.map(s => `
+            <div class="history-item" data-id="${s.id}" style="padding:10px 12px;border-radius:8px;color:#9ca3af;font-size:.82rem;cursor:pointer;border:1px solid transparent;display:flex;align-items:center;justify-content:space-between;gap:8px;transition:all .2s;${String(s.id)===String(currentSessionId)?'background:rgba(0,245,255,0.08);color:#00f5ff;border-color:rgba(0,245,255,0.2)':''}">
+                <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.title}</span>
+                <button class="delete-session-btn" data-id="${s.id}" style="opacity:0;background:none;border:none;color:#6b7280;cursor:pointer;padding:4px;border-radius:4px;display:flex;align-items:center;transition:all .2s">
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                </button>
+            </div>`).join('');
+        document.querySelectorAll('.history-item').forEach(item => {
+            item.addEventListener('mouseenter', () => { item.querySelector('.delete-session-btn').style.opacity='1'; item.style.background='rgba(255,255,255,0.05)'; });
+            item.addEventListener('mouseleave', () => { item.querySelector('.delete-session-btn').style.opacity='0'; if(String(item.dataset.id)!==String(currentSessionId)) item.style.background=''; });
+        });
+    }
+
+    async function loadSessions() {
+        const data = await apiCall('/api/sessions');
+        if (data) { sessions = data; renderSidebar(); }
+    }
+
+    async function switchSession(id) {
+        if (isProcessing) return;
+        currentSessionId = id;
+        const container = document.getElementById('chat-container');
+        const welcome = document.getElementById('welcome-screen');
+        container.querySelectorAll('[style*="align-self"], div[class*="flex gap-2"]').forEach(m => m.remove());
+        if (welcome) welcome.style.display = 'none';
+        const messages = await apiCall(`/api/sessions/${id}/messages`);
+        if (messages && messages.length) {
+            conversationHistory = messages;
+            messages.forEach(m => renderMessage(m.role, m.parts[0].text));
+        } else { conversationHistory = []; if (welcome) welcome.style.display = 'flex'; }
+        renderSidebar();
+    }
+
+    function createNewSession() {
+        currentSessionId = null; conversationHistory = [];
+        const container = document.getElementById('chat-container');
+        const welcome = document.getElementById('welcome-screen');
+        container.querySelectorAll('div[style*="align-self"]').forEach(m => m.remove());
+        if (welcome) welcome.style.display = 'flex';
+        const input = document.getElementById('chat-input');
+        if (input) { input.value = ''; autoResize(input); }
+        renderSidebar();
+    }
+
+    async function handleSend() {
+        const input = document.getElementById('chat-input');
+        const btn = document.getElementById('send-btn');
+        const text = input?.value.trim();
+        if (!text || isProcessing) return;
+        isProcessing = true;
+        if (btn) btn.disabled = true;
+        input.value = ''; autoResize(input);
+        renderMessage('user', text);
+
+        const response = await apiCall('/api/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+            body: JSON.stringify({ message: text, session_id: currentSessionId, history: conversationHistory })
+        });
+
+        if (response?.reply) {
+            if (!currentSessionId && response.session_id) { currentSessionId = response.session_id; await loadSessions(); }
+            renderMessage('model', response.reply, true);
+            conversationHistory.push({ role:'user', parts:[{text}] });
+            conversationHistory.push({ role:'model', parts:[{text:response.reply}] });
+        } else {
+            renderMessage('model', 'Maaf, terjadi kesalahan. Silakan coba lagi.');
+        }
+        isProcessing = false;
+        if (btn) btn.disabled = !input?.value.trim();
+        input?.focus();
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
+        const input = document.getElementById('chat-input');
+        const btn = document.getElementById('send-btn');
+
+        // Send button enable/disable
+        input?.addEventListener('input', () => {
+            autoResize(input);
+            if (btn) btn.disabled = !input.value.trim();
+        });
+
+        // Send on click
+        btn?.addEventListener('click', handleSend);
+
+        // Send on Enter
+        input?.addEventListener('keydown', e => {
+            if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }
+        });
+
+        // Suggestions
+        document.querySelectorAll('.suggestion-card').forEach(card => {
+            card.addEventListener('click', () => {
+                if (isProcessing) return;
+                if (input) { input.value = card.dataset.prompt; autoResize(input); }
+                if (btn) btn.disabled = false;
+                handleSend();
+            });
+        });
+
+        // Sidebar
         document.getElementById('sidebar-toggle')?.addEventListener('click', () => {
             document.getElementById('sidebar')?.classList.toggle('hidden-sidebar');
             document.getElementById('sidebar-overlay')?.classList.toggle('active');
@@ -195,16 +380,32 @@
             document.getElementById('sidebar')?.classList.remove('hidden-sidebar');
             document.getElementById('sidebar-overlay')?.classList.remove('active');
         });
-        document.getElementById('clear-btn')?.addEventListener('click', () => {
-            document.getElementById('modal-overlay')?.classList.add('active');
+
+        // Sidebar history delegation
+        document.getElementById('history-list')?.addEventListener('click', async e => {
+            const item = e.target.closest('.history-item');
+            if (!item) return;
+            const delBtn = e.target.closest('.delete-session-btn');
+            if (delBtn) {
+                if (confirm('Hapus percakapan ini?')) {
+                    const res = await apiCall(`/api/sessions/${delBtn.dataset.id}`, { method:'DELETE', headers:{'X-CSRF-TOKEN':csrfToken} });
+                    if (res) { await loadSessions(); if (String(currentSessionId) === String(delBtn.dataset.id)) createNewSession(); }
+                }
+                return;
+            }
+            switchSession(item.dataset.id);
         });
-        document.getElementById('modal-cancel')?.addEventListener('click', () => {
-            document.getElementById('modal-overlay')?.classList.remove('active');
-        });
-        document.getElementById('modal-confirm')?.addEventListener('click', () => {
-            document.getElementById('modal-overlay')?.classList.remove('active');
-            if (typeof createNewSession === 'function') createNewSession();
-        });
+
+        // New chat btn
+        document.getElementById('new-chat-btn')?.addEventListener('click', createNewSession);
+
+        // Clear / modal
+        document.getElementById('clear-btn')?.addEventListener('click', () => document.getElementById('modal-overlay')?.classList.add('active'));
+        document.getElementById('modal-cancel')?.addEventListener('click', () => document.getElementById('modal-overlay')?.classList.remove('active'));
+        document.getElementById('modal-confirm')?.addEventListener('click', () => { document.getElementById('modal-overlay')?.classList.remove('active'); createNewSession(); });
+
+        // Load sessions
+        loadSessions().then(() => { if (sessions.length) switchSession(sessions[0].id); });
     });
     </script>
 </body>
