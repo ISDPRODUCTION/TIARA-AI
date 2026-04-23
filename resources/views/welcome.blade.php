@@ -70,8 +70,19 @@
         .code-block { background: rgba(0,0,0,0.4); border: 1px solid rgba(0,245,255,0.12); border-radius: 8px; padding: 12px; margin: 8px 0; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; }
         code { font-family: 'JetBrains Mono', monospace; background: rgba(0,245,255,0.1); padding: 2px 5px; border-radius: 4px; color: #00f5ff; }
 
-        .sidebar { transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        .hidden-sidebar { transform: translateX(-100%); position: absolute; }
+        .sidebar { 
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); 
+            width: 280px;
+        }
+        @media (max-width: 1023px) {
+            .sidebar { 
+                position: fixed;
+                left: 0; top: 0; bottom: 0;
+                z-index: 50;
+                transform: translateX(-100%);
+            }
+            .sidebar.active { transform: translateX(0); }
+        }
     </style>
 </head>
 <body class="text-gray-200 h-screen overflow-hidden">
@@ -83,7 +94,7 @@
     <div class="flex h-screen relative z-10">
 
         <!-- ===== SIDEBAR ===== -->
-        <aside id="sidebar" class="sidebar glass border-r neon-border flex flex-col w-72 h-full shrink-0 z-50">
+        <aside id="sidebar" class="sidebar glass border-r neon-border flex flex-col h-full shrink-0">
             <div class="p-6 border-b neon-border">
                 <button id="new-chat-btn" class="w-full py-3 px-4 glass border neon-border rounded-xl text-sm font-medium flex items-center justify-center gap-2 hover:border-cyan-neon/50 hover:bg-cyan-neon/5 transition-all duration-300 neon-glow-btn">
                     <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -126,11 +137,11 @@
                 <button id="sidebar-toggle" class="p-2 glass border neon-border rounded-lg text-gray-400 hover:text-cyan-neon hover:border-cyan-neon/50 transition-all">
                     <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
                 </button>
-                <div class="flex-1">
-                    <h1 class="font-orbitron text-base font-black tracking-[4px] uppercase neon-text">TIARA AI</h1>
+                <div class="flex-1 min-w-0">
+                    <h1 class="font-orbitron text-sm sm:text-base font-black tracking-[2px] sm:tracking-[4px] uppercase neon-text truncate">TIARA AI</h1>
                     <div class="flex items-center gap-2 mt-0.5">
-                        <span class="w-1.5 h-1.5 rounded-full bg-cyan-neon animate-pulse" style="box-shadow: 0 0 8px #00f5ff"></span>
-                        <span class="text-[0.65rem] text-gray-400 uppercase tracking-widest font-medium">System Online // {{ $aiProvider ?? 'Mistral' }}</span>
+                        <span class="w-1.5 h-1.5 rounded-full bg-cyan-neon animate-pulse shrink-0" style="box-shadow: 0 0 8px #00f5ff"></span>
+                        <span class="text-[0.6rem] sm:text-[0.65rem] text-gray-400 uppercase tracking-widest font-medium truncate">Online // {{ $aiProvider ?? 'Mistral' }}</span>
                     </div>
                 </div>
                 <button id="clear-btn" class="p-2.5 glass border neon-border rounded-xl text-gray-400 hover:text-cyan-neon hover:border-cyan-neon/50 transition-all">
@@ -146,8 +157,8 @@
                         <div class="absolute inset-0 bg-cyan-neon/5 blur-xl group-hover:bg-cyan-neon/10 transition-all"></div>
                         <svg viewBox="0 0 24 24" class="w-12 h-12 relative z-10" style="fill:#00f5ff; filter: drop-shadow(0 0 10px #00f5ff)"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
                     </div>
-                    <h2 class="font-orbitron text-4xl font-black tracking-[6px] uppercase neon-text mb-3">TIARA AI</h2>
-                    <p class="text-gray-400 text-sm max-w-sm leading-relaxed mb-12 px-4">Halo! Aku Tiara, teman mahasiswa kamu yang siap bantu ngerjain tugas, diskusi materi kuliah, atau sekadar nemenin kamu belajar.</p>
+                    <h2 class="font-orbitron text-2xl sm:text-4xl font-black tracking-[4px] sm:tracking-[6px] uppercase neon-text mb-3">TIARA AI</h2>
+                    <p class="text-gray-400 text-xs sm:text-sm max-w-sm leading-relaxed mb-8 sm:mb-12 px-6">Halo! Aku Tiara, teman mahasiswa kamu yang siap bantu ngerjain tugas, diskusi materi kuliah, atau sekadar nemenin kamu belajar.</p>
                     
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-lg px-4">
                         <button class="suggestion-card glass border neon-border rounded-2xl p-5 text-left hover:border-cyan-neon/40 hover:bg-cyan-neon/5 transition-all group" data-prompt="Jelaskan tentang AI dalam bahasa sederhana">
@@ -431,17 +442,19 @@
         document.getElementById('sidebar-toggle')?.addEventListener('click', () => {
             const sb = document.getElementById('sidebar');
             const ov = document.getElementById('sidebar-overlay');
-            sb.classList.toggle('hidden-sidebar');
+            sb.classList.toggle('active');
             ov.classList.toggle('opacity-100');
             ov.classList.toggle('visible');
         });
 
-        document.getElementById('sidebar-overlay')?.addEventListener('click', () => {
+        const closeSidebar = () => {
             const sb = document.getElementById('sidebar');
             const ov = document.getElementById('sidebar-overlay');
-            sb.classList.add('hidden-sidebar');
+            sb.classList.remove('active');
             ov.classList.remove('opacity-100', 'visible');
-        });
+        };
+
+        document.getElementById('sidebar-overlay')?.addEventListener('click', closeSidebar);
 
         document.getElementById('history-list')?.addEventListener('click', async e => {
             const item = e.target.closest('.history-item');
@@ -454,6 +467,7 @@
                 }
                 return;
             }
+            if (window.innerWidth < 1024) closeSidebar();
             switchSession(item.dataset.id);
         });
 
