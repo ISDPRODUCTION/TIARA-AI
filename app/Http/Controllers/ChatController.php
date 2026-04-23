@@ -264,18 +264,19 @@ class ChatController extends Controller
      */
     private function detectModeAI(string $input, string $provider): string
     {
-        // Fail-safe 1: Hard Heuristic for very short/casual messages
-        if (strlen($input) < 15) {
+        // Fail-safe 1: Hard Heuristic - if it looks like slang or is short, it's SANTAI
+        $lower = strtolower($input);
+        if (strlen($input) < 30 || str_contains($lower, 'hts') || str_contains($lower, 'kocak') || str_contains($lower, 'gaul')) {
             return 'SANTAI';
         }
 
         $prompt = "Task: Classify user intent into SANTAI or AKADEMIK.
         
         Guidelines:
-        - AKADEMIK: Complex questions, asking for long explanations, academic analysis, definition of technical terms, or homework help.
-        - SANTAI: Casual chat, greetings, short reactions (e.g., 'nanya aja', 'oke', 'haha'), personal opinions, or venting/curhat.
+        - AKADEMIK: Homework help, math, science, long coding requests, or formal academic analysis.
+        - SANTAI: Greetings, asking about social slang (like HTS, ghosting), casual talk, personal opinions, or short questions.
         
-        Rule: If the input is short (under 5 words) and casual, ALWAYs choose SANTAI.
+        Rule: If in doubt or if it sounds like a person chatting with a friend, choose SANTAI.
         Only reply with ONE WORD: SANTAI or AKADEMIK.
         
         Input: \"{$input}\"";
