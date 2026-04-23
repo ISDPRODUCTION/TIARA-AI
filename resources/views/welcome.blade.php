@@ -472,7 +472,7 @@
         document.getElementById('modal-cancel')?.addEventListener('click', closeMod);
         document.getElementById('modal-confirm')?.addEventListener('click', () => { closeMod(); createNewSession(); });
 
-        loadSessions().then(() => { if (sessions.length) switchSession(sessions[0].id); });
+        loadSessions();
     });
     </script>
 </body>
