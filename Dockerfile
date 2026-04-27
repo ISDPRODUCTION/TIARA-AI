@@ -26,8 +26,8 @@ WORKDIR /var/www/html
 # Copy application files
 COPY . .
 
-# Install PHP dependencies
-RUN composer install --no-dev --optimize-autoloader --no-interaction --ignore-platform-reqs
+# Install PHP dependencies (APP_ENV=local prevents production guards during build)
+RUN APP_ENV=local composer install --no-dev --optimize-autoloader --no-interaction --ignore-platform-reqs
 
 # Set permissions
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \

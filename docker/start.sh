@@ -38,5 +38,16 @@ mkdir -p /var/www/html/storage/logs
 chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
+if [ -z "$APP_KEY" ]; then
+    echo "No APP_KEY found, generating one..."
+    php artisan key:generate --force --no-interaction 2>&1 || true
+else
+    echo "Using existing APP_KEY from environment."
+fi
+
+php artisan config:clear --no-interaction 2>&1 || true
+php artisan view:clear --no-interaction 2>&1 || true
+php artisan migrate --force --no-interaction 2>&1 || true
+
 php-fpm -D
 exec nginx -g "daemon off;"
