@@ -50,17 +50,17 @@ chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 # 4. Handle APP_KEY (Crucial for session persistence)
 if [ -z "$APP_KEY" ]; then
     echo "No APP_KEY found, generating one..."
-    php artisan key:generate --force
+    yes | php artisan key:generate --force 2>&1 || true
 else
     echo "Using existing APP_KEY from environment."
 fi
 
-# 5. Optimization & Migrations
-php artisan view:clear
-php artisan config:clear
+# 5. Optimization & Migrations (pipe yes to bypass production prompts)
+yes | php artisan view:clear 2>&1 || true
+yes | php artisan config:clear 2>&1 || true
 
-# Run migrations, ignore errors if table already exists
-php artisan migrate --force 2>&1 || echo "Migration had errors (possibly already migrated), continuing..."
+# Run migrations
+yes | php artisan migrate --force 2>&1 || true
 
 # Start PHP-FPM in background
 php-fpm -D
