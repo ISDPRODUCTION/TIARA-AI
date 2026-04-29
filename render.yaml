@@ -1,0 +1,82 @@
+databases:
+  - name: tiara-ai-db
+    databaseName: tiara_ai
+    plan: free
+    region: singapore
+
+services:
+  - type: web
+    name: tiara-ai
+    runtime: docker
+    region: singapore
+    plan: free
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: APP_NAME
+        value: "Tiara AI"
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_KEY
+        generateValue: true
+      - key: APP_URL
+        value: https://tiara-ai.onrender.com
+      - key: PORT
+        value: "8080"
+
+      # Database (auto-linked from Render PostgreSQL)
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_HOST
+        fromDatabase:
+          name: tiara-ai-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: tiara-ai-db
+          property: port
+      - key: DB_DATABASE
+        fromDatabase:
+          name: tiara-ai-db
+          property: database
+      - key: DB_USERNAME
+        fromDatabase:
+          name: tiara-ai-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: tiara-ai-db
+          property: password
+
+      # Session & Cache (use file-based for Render free tier)
+      - key: SESSION_DRIVER
+        value: file
+      - key: SESSION_LIFETIME
+        value: "120"
+      - key: SESSION_SECURE_COOKIE
+        value: "true"
+      - key: CACHE_STORE
+        value: file
+      - key: QUEUE_CONNECTION
+        value: sync
+      - key: FILESYSTEM_DISK
+        value: local
+
+      # AI Provider
+      - key: AI_PROVIDER
+        value: mistral
+      - key: MISTRAL_API_KEY
+        sync: false  # Set manually in dashboard
+      - key: MISTRAL_MODEL
+        value: mistral-small-latest
+      - key: GEMINI_API_KEY
+        sync: false  # Set manually in dashboard
+
+      # Google OAuth
+      - key: GOOGLE_CLIENT_ID
+        sync: false  # Set manually in dashboard
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false  # Set manually in dashboard
+      - key: GOOGLE_REDIRECT_URI
+        value: https://tiara-ai.onrender.com/auth/google/callback
