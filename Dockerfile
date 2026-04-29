@@ -12,8 +12,7 @@ RUN apt-get update && apt-get install -y \
     zip \
     unzip \
     curl \
-    && apt-get install -y libpq-dev \
-    && docker-php-ext-install pdo_mysql pdo_pgsql mbstring exif pcntl bcmath gd zip intl \
+    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip intl \
     && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
     && apt-get install -y nodejs \
     && apt-get clean && rm -rf /var/lib/apt/lists/*

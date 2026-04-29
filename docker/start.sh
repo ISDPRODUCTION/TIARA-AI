@@ -4,31 +4,21 @@ export PORT=${PORT:-8080}
 
 envsubst '${PORT}' < /etc/nginx/sites-available/default > /etc/nginx/sites-available/default.tmp && mv /etc/nginx/sites-available/default.tmp /etc/nginx/sites-available/default
 
-# Parse DATABASE_URL if provided (Render provides this automatically)
-if [ -n "$DATABASE_URL" ] && [ -z "$DB_HOST" ]; then
-    export DB_CONNECTION="pgsql"
-    export DB_HOST=$(echo $DATABASE_URL | sed -e 's|.*@\(.*\):.*|\1|')
-    export DB_PORT=$(echo $DATABASE_URL | sed -e 's|.*:\([0-9]*\)/.*|\1|')
-    export DB_DATABASE=$(echo $DATABASE_URL | sed -e 's|.*/\(.*\)|\1|')
-    export DB_USERNAME=$(echo $DATABASE_URL | sed -e 's|.*://\(.*\):.*@.*|\1|')
-    export DB_PASSWORD=$(echo $DATABASE_URL | sed -e 's|.*://.*:\(.*\)@.*|\1|')
-fi
-
 cat > /var/www/html/.env << EOF
 APP_NAME="${APP_NAME:-Tiara AI}"
 APP_ENV="${APP_ENV:-production}"
 APP_KEY="${APP_KEY}"
 APP_DEBUG="${APP_DEBUG:-false}"
 APP_URL="${APP_URL:-http://localhost}"
-DB_CONNECTION="${DB_CONNECTION:-pgsql}"
+DB_CONNECTION="${DB_CONNECTION:-mysql}"
 DB_HOST="${DB_HOST:-127.0.0.1}"
-DB_PORT="${DB_PORT:-5432}"
+DB_PORT="${DB_PORT:-3306}"
 DB_DATABASE="${DB_DATABASE}"
 DB_USERNAME="${DB_USERNAME}"
 DB_PASSWORD="${DB_PASSWORD}"
 SESSION_DRIVER="${SESSION_DRIVER:-file}"
 SESSION_LIFETIME="${SESSION_LIFETIME:-120}"
-SESSION_SECURE_COOKIE="${SESSION_SECURE_COOKIE:-true}"
+SESSION_SECURE_COOKIE="${SESSION_SECURE_COOKIE:-false}"
 CACHE_STORE="${CACHE_STORE:-file}"
 QUEUE_CONNECTION="${QUEUE_CONNECTION:-sync}"
 FILESYSTEM_DISK="${FILESYSTEM_DISK:-local}"
